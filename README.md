@@ -1,0 +1,2 @@
+# CalcSimilarityPenguin
+ペンギンの点の類似度を適当に求めてみるやつ

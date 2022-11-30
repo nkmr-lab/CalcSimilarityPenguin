@@ -3,7 +3,7 @@ var working = false;
 // 8以上にすると計算量で死ぬと思う（何個までの点を配慮するか）
 const maxTargetLength = 7;
 // いくつまで違うやつがあっても許すか？ 0なら完全一致、1なら1つくらい抜けがあってもという感じ
-const numAllowable = 0;
+const numAllowable = 1;
 // これはAPIで処理するときはいらない
 const numOfPenguinJSON = 12;
 
@@ -99,10 +99,10 @@ async function compareTwoPenguins(_url1, _url2, _dom1, _dom2){
 
         // スコアの計算結果をDOMに設定する（dom1とdom2は対角の関係）
         //let score = results.minScore;
-        showResultOnTable(results.minDistance, _dom1);
-        showResultOnTable(results.minDistance, _dom2);
-        //showResultOnTable(results.minScore, _dom1);
-        //showResultOnTable(results.minScore, _dom2);
+        //showResultOnTable(results.minDistance, _dom1);
+        //showResultOnTable(results.minDistance, _dom2);
+        showResultOnTable(results.minScore, _dom1);
+        showResultOnTable(results.minScore, _dom2);
         working = false;
     });
 }

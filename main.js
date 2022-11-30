@@ -98,11 +98,10 @@ async function compareTwoPenguins(_url1, _url2, _dom1, _dom2){
         console.log(_url1 + ", " + _url2 + " : distance = " + Math.floor(results.minDistance) + " (" + Math.floor(results.minScore) + ")" );
 
         // スコアの計算結果をDOMに設定する（dom1とdom2は対角の関係）
-        //let score = results.minScore;
         //showResultOnTable(results.minDistance, _dom1);
         //showResultOnTable(results.minDistance, _dom2);
-        showResultOnTable(results.minScore, _dom1);
-        showResultOnTable(results.minScore, _dom2);
+        setResultOnTable(results.minScore, _dom1);
+        setResultOnTable(results.minScore, _dom2);
         working = false;
     });
 }
@@ -126,7 +125,7 @@ function prepareResultsTable(){
     document.querySelector("#results").innerHTML = tableContent;
 }
 
-function showResultOnTable(_score, _dom){
+function setResultOnTable(_score, _dom){
     _dom.innerHTML = Math.floor(_score);
     if(_score < 100){
         _dom.style.backgroundColor = "#ff5555";

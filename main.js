@@ -1,5 +1,6 @@
 var working = false;
 const maxTargetLength = 7;
+const numAllowable = 1;
 const numOfPenguinJSON = 8;
 
 window.onload = function(){
@@ -35,9 +36,7 @@ window.onload = function(){
             if(p1 != p2 && p1 <= numOfPenguinJSON){
                 working = true;
                 console.log("compare: " + p1 + ", " + p2);
-                let penguin1_json_url = "json/pen"+p1+".json";
-                let penguin2_json_url = "json/pen"+p2+".json";
-                compareTwoPenguins(penguin1_json_url, penguin2_json_url, document.querySelector("#score" + p1 + "_" + p2));
+                compareTwoPenguins("pen"+p1+".json", "pen"+p2+".json", document.querySelector("#score" + p1 + "_" + p2));
             }
         }
     }, 100);
@@ -85,7 +84,7 @@ async function compareTwoPenguins(url1, url2, dom){
         let minDistance = 0;
         let min_i = 0;
         let min_j = 0;
-        for(let k=0; k<minStroke; k++){
+        for(let k=0; k<minStroke-numAllowable; k++){
             minDistance += calcDistanceFromPt(penguin1json[penguin1[0][k]].pos[0], penguin2json[penguin2[0][k]].pos[0]);
         }
 
@@ -93,7 +92,7 @@ async function compareTwoPenguins(url1, url2, dom){
             //console.log("penguin1: " + i);
             for(let j=0; j<penguin2.length; j++){
                 let distance = 0;
-                for(let k=0; k<minStroke && distance < minDistance; k++){
+                for(let k=0; k<minStroke-numAllowable && distance < minDistance; k++){
                     distance += calcDistanceFromPt(penguin1json[penguin1[i][k]].pos[0], penguin2json[penguin2[j][k]].pos[0]);
                 }
                 if(distance < minDistance){
@@ -105,13 +104,11 @@ async function compareTwoPenguins(url1, url2, dom){
         }
         console.log(url1 + ", " + url2 + " : distance = " + Math.floor(minDistance) + " (" + Math.floor(minDistance * (maxStroke / minStroke)) + ")" );
         let score = minDistance * ratioMinMax;
-        //let score = minDistance * Math.log(ratioMinMax);
         //let score = minDistance;
         dom.innerHTML = Math.floor(score);
 
         if(score < 100) dom.style.backgroundColor = "#ff5555";
         else if(score < 200) dom.style.backgroundColor = "#ffbbbb";
-        else if(score < 300) dom.style.backgroundColor = "#ffdddd";
         working = false;
     });
 }

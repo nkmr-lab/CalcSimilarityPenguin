@@ -18,17 +18,12 @@ window.onload = function(){
 // メインモジュール
 function mainModule(){
     let p1 = 1;
-    let p2 = 0;
+    let p2 = 2;
 
     setInterval(function(){
         // working == true のときは処理中なので無視する
         if( working == false ){
-            if(p2 < numOfPenguinJSON) { p2++; }
-            else { p1++; p2=p1+1; }
-
-            if(p1 >= numOfPenguinJSON){
-                clearInterval(this);
-            } else if(p1 != p2){
+            if(p1 < numOfPenguinJSON){
                 working = true;
                 console.log("compare: " + p1 + ", " + p2);
                 let penguin1_json_url = "json/pen"+p1+".json";
@@ -37,9 +32,41 @@ function mainModule(){
                     document.querySelector("#score" + p1 + "_" + p2),
                     document.querySelector("#score" + p2 + "_" + p1)
                 );
+            } else {
+                clearInterval(this);
             }
+            if(p2 < numOfPenguinJSON) { p2++; }
+            else { p1++; p2=p1+1; }
         }
     }, 100);
+}
+
+function calcSimilarityEucrid(_penguin1json, _order1, _penguin2json, _order2, _minStroke){
+    let distance = 0;
+    for(let k=0; k<_minStroke-numAllowable; k++){
+        distance += calcDistanceFromPt(_penguin1json[_order1[k]].pos[0], _penguin2json[_order2[k]].pos[0]);
+    }
+    return distance;
+}
+
+function calcCosineSimilarity(_penguin1json, _order1, _penguin2json, _order2, _minStroke){
+    let cog = {x: 0, y: 0};
+    for(let k=0; k<_minStroke-numAllowable; k++){
+        cog.x += _penguin1json[_order1[k]].pos[0].x + _penguin2json[_order2[k]].pos[0].x;
+        cog.y += _penguin1json[_order1[k]].pos[0].y + _penguin2json[_order2[k]].pos[0].y;
+    }
+    cog.x /= (_minStroke * 2);
+    cog.y /= (_minStroke * 2);
+
+    let similarity = 0;
+    for(let k=0; k<_minStroke-numAllowable; k++){
+        similarity += 
+            ( (_penguin1json[_order1[k]].pos[0].x-cog.x) * (_penguin2json[_order2[k]].pos[0].x-cog.x)
+            + (_penguin1json[_order1[k]].pos[0].y-cog.y) * (_penguin2json[_order2[k]].pos[0].y-cog.y))
+            / (calcDistanceFromPt(_penguin1json[_order1[k]].pos[0], cog) * calcDistanceFromPt(_penguin2json[_order2[k]].pos[0], cog));
+    }
+    //console.log(similarity);
+    return similarity / (_minStroke-numAllowable);
 }
 
 // JSONを利用して比較するよ
@@ -61,28 +88,17 @@ function compareTwoPenguinsWithJSON(_penguin1json, _penguin2json){
     penguin2order = permute( penguin2 );
 
     // ここから計算
-    results.minDistance = 0;
-    let min_i = 0;
-    let min_j = 0;
-    for(let k=0; k<minStroke-numAllowable; k++){
-        results.minDistance += calcDistanceFromPt(
-            _penguin1json[penguin1order[0][k]].pos[0],
-            _penguin2json[penguin2order[0][k]].pos[0]);
-    }
-
+    results.minDistance = 9999;    
+    results.maxSimilarity = -10;
     for(let i=0; i<penguin1order.length; i++){
-        //console.log("penguin1: " + i);
         for(let j=0; j<penguin2order.length; j++){
-            let distance = 0;
-            for(let k=0; k<minStroke-numAllowable && distance < results.minDistance; k++){
-                distance += calcDistanceFromPt(
-                    _penguin1json[penguin1order[i][k]].pos[0],
-                    _penguin2json[penguin2order[j][k]].pos[0]);
-            }
+            let similarity = calcCosineSimilarity(_penguin1json, penguin1order[i], _penguin2json, penguin2order[j], minStroke);
+            let distance = calcSimilarityEucrid(_penguin1json, penguin1order[i], _penguin2json, penguin2order[j], minStroke);
             if(distance < results.minDistance){
                 results.minDistance = distance;
-                min_i = i;
-                min_j = j;
+            }
+            if(similarity > results.maxSimilarity){
+                results.maxSimilarity = similarity;
             }
         }
     }
@@ -98,10 +114,12 @@ async function compareTwoPenguins(_url1, _url2, _dom1, _dom2){
         console.log(_url1 + ", " + _url2 + " : distance = " + Math.floor(results.minDistance) + " (" + Math.floor(results.minScore) + ")" );
 
         // スコアの計算結果をDOMに設定する（dom1とdom2は対角の関係）
-        //showResultOnTable(results.minDistance, _dom1);
-        //showResultOnTable(results.minDistance, _dom2);
-        setResultOnTable(results.minScore, _dom1);
-        setResultOnTable(results.minScore, _dom2);
+        //setResultOnTable1(results.maxSimilarity, _dom1);
+        //setResultOnTable1(results.maxSimilarity, _dom2);
+        // setResultOnTable2(results.minDistance, _dom1);
+        // setResultOnTable2(results.minDistance, _dom2);
+        setResultOnTable2(results.minScore, _dom1);
+        setResultOnTable2(results.minScore, _dom2);
         working = false;
     });
 }
@@ -125,7 +143,17 @@ function prepareResultsTable(){
     document.querySelector("#results").innerHTML = tableContent;
 }
 
-function setResultOnTable(_score, _dom){
+function setResultOnTable1(_score, _dom){
+    _score *= 100;
+    _dom.innerHTML = Math.floor(_score);
+    if(_score > 95){
+        _dom.style.backgroundColor = "#ff5555";
+    } else if(_score > 90){
+        _dom.style.backgroundColor = "#ffbbbb";
+    }
+}
+
+function setResultOnTable2(_score, _dom){
     _dom.innerHTML = Math.floor(_score);
     if(_score < 100){
         _dom.style.backgroundColor = "#ff5555";

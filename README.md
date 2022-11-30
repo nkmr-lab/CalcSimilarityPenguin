@@ -1,2 +1,4 @@
 # CalcSimilarityPenguin
 ペンギンの点の類似度を適当に求めてみるやつ
+
+とりあえず版なのでDBからJSON取ってくるAPIとか整えるとよいんじゃないかな。
